@@ -1,0 +1,12 @@
+[package]
+name = "led_matrix_daemon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = "0.4"
+image = "0.25"
+rand = "0.8"
+clap = { version = "4.5", features = ["derive"] }
+serialport = "4.3"
+anyhow = "1"
