@@ -1,0 +1,14 @@
+listen_address = "127.0.0.1:45935"
+unix_socket = "/tmp/led-matrix.sock"
+
+[left_port]
+path = "/dev/ttyACM0"
+baud_rate = 115200
+timeout = "2s"
+keep_open = false
+
+[right_port]
+path = "/dev/ttyACM1"
+baud_rate = 115200
+timeout = "2s"
+keep_open = false

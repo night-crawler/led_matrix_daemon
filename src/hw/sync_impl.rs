@@ -1,65 +1,11 @@
-use anyhow::bail;
 use std::thread;
 use std::time::Duration;
 
-use image::{io::Reader as ImageReader, Luma};
+use anyhow::bail;
+use image::io::Reader as ImageReader;
 use serialport::{SerialPort, SerialPortInfo, SerialPortType};
 
-use crate::hw_abstract::led_matrix::Pattern;
-
-const FWK_MAGIC: &[u8] = &[0x32, 0xAC];
-pub const FRAMEWORK_VID: u16 = 0x32AC;
-pub const LED_MATRIX_PID: u16 = 0x0020;
-pub const B1_LCD_PID: u16 = 0x0021;
-
-type Brightness = u8;
-
-// TODO: Use a shared enum with the firmware code
-#[derive(Clone, Copy)]
-#[repr(u8)]
-enum Command {
-    Brightness = 0x00,
-    Pattern = 0x01,
-    Bootloader = 0x02,
-    Sleeping = 0x03,
-    Animate = 0x04,
-    Panic = 0x05,
-    DisplayBwImage = 0x06,
-    SendCol = 0x07,
-    CommitCols = 0x08,
-    _B1Reserved = 0x09,
-    StartGame = 0x10,
-    GameControl = 0x11,
-    _GameStatus = 0x12,
-    SetColor = 0x13,
-    DisplayOn = 0x14,
-    InvertScreen = 0x15,
-    SetPixelColumn = 0x16,
-    FlushFramebuffer = 0x17,
-    ClearRam = 0x18,
-    ScreenSaver = 0x19,
-    Fps = 0x1A,
-    PowerMode = 0x1B,
-    AnimationPeriod = 0x1C,
-    PwmFreq = 0x1E,
-    DebugMode = 0x1F,
-    Version = 0x20,
-}
-
-enum GameControlArg {
-    _Up = 0,
-    _Down = 1,
-    _Left = 2,
-    _Right = 3,
-    Exit = 4,
-    _SecondLeft = 5,
-    _SecondRight = 6,
-}
-
-const WIDTH: usize = 9;
-const HEIGHT: usize = 34;
-
-const SERIAL_TIMEOUT: Duration = Duration::from_millis(2000);
+use crate::hw::{Command, FRAMEWORK_VID, FWK_MAGIC, HEIGHT, LED_MATRIX_PID, Pattern, pixel_to_brightness, SERIAL_TIMEOUT, WIDTH};
 
 fn match_serialdevs(
     ports: &[SerialPortInfo],
@@ -79,7 +25,7 @@ fn match_serialdevs(
             vec![pid]
         } else {
             // By default, accept any type
-            vec![LED_MATRIX_PID, B1_LCD_PID, 0x22, 0xFF]
+            vec![LED_MATRIX_PID, 0x22, 0xFF]
         };
         // Find all supported Framework devices
         for p in ports {
@@ -144,30 +90,7 @@ fn match_serialdevs(
 //     (serialdevs, waited)
 // }
 
-fn get_device_version(serialdev: &str) -> anyhow::Result<()> {
-    let mut port = serialport::new(serialdev, 115_200)
-        .timeout(SERIAL_TIMEOUT)
-        .open()
-        .expect("Failed to open port");
 
-    simple_cmd_port(&mut port, Command::Version, &[])?;
-
-    let mut response: Vec<u8> = vec![0; 32];
-    port.read_exact(response.as_mut_slice())
-        .expect("Found no data!");
-
-    let major = response[0];
-    let minor = (response[1] & 0xF0) >> 4;
-    let patch = response[1] & 0x0F;
-    let pre_release = response[2] == 1;
-    print!("Device Version: {major}.{minor}.{patch}");
-    if pre_release {
-        print!(" (Pre-Release)");
-    }
-    println!();
-
-    Ok(())
-}
 
 fn pattern_cmd(serialdev: &str, arg: Pattern) -> anyhow::Result<()> {
     simple_cmd(serialdev, Command::Pattern, &[arg as u8])
@@ -193,7 +116,8 @@ fn simple_cmd(serialdev: &str, command: Command, args: &[u8]) -> anyhow::Result<
         Ok(mut port) => simple_cmd_port(&mut port, command, args)?,
         Err(error) => match error.kind {
             serialport::ErrorKind::Io(std::io::ErrorKind::PermissionDenied) => {
-                bail!("Permission denied, couldn't access inputmodule serialport. Ensure that you have permission, for example using a udev rule or sudo.");
+                bail!("Permission denied, couldn't access inputmodule serialport. \
+                Ensure that you have permission, for example using a udev rule or sudo.");
             }
             other_error => {
                 bail!("Couldn't open port: {:?}", other_error);
@@ -363,48 +287,7 @@ fn breathing_cmd(serialdevs: &Vec<String>) -> anyhow::Result<()> {
     }
 }
 
-// // Calculate pixel brightness from an RGB triple
-// fn pixel_to_brightness(pixel: &Luma<u8>) -> u8 {
-//     let brightness = pixel.0[0];
-//     // Poor man's scaling to make the greyscale pop better.
-//     // Should find a good function.
-//     if brightness > 200 {
-//         brightness
-//     } else if brightness > 150 {
-//         ((brightness as u32) * 10 / 8) as u8
-//     } else if brightness > 100 {
-//         brightness / 2
-//     } else if brightness > 50 {
-//         brightness
-//     } else {
-//         brightness * 2
-//     }
-// }
 
-
-// fn pixel_to_brightness(pixel: &Luma<u8>) -> u8 {
-//     let brightness = pixel.0[0];
-//     // Apply a linear transformation to enhance contrast
-//     let enhanced_brightness = if brightness > 200 {
-//         brightness
-//     } else if brightness > 150 {
-//         ((brightness as u32) * 12 / 10) as u8 // Adjust scaling factor as needed
-//     } else if brightness > 100 {
-//         ((brightness as u32) * 10 / 10) as u8
-//     } else if brightness > 50 {
-//         ((brightness as u32) * 8 / 10) as u8
-//     } else {
-//         ((brightness as u32) * 6 / 10) as u8
-//     };
-//     enhanced_brightness
-// }
-
-fn pixel_to_brightness(pixel: &Luma<u8>) -> u8 {
-    let brightness = pixel.0[0];
-    // Enhance contrast using a sigmoid function
-    let enhanced_brightness = 255.0 / (1.0 + f64::exp(-0.03 * (brightness as f64 - 128.0)));
-    enhanced_brightness as u8
-}
 
 
 /// Display an image in greyscale
@@ -424,14 +307,14 @@ pub fn display_gray_image_cmd(serialdev: &str, image_path: &str) -> anyhow::Resu
     }
 
     for x in 0..WIDTH {
-        let mut vals: [u8; HEIGHT] = [0; HEIGHT];
+        let mut brightnesses = [0; HEIGHT];
 
         for y in 0..HEIGHT {
             let pixel = img.get_pixel(x as u32, y as u32);
-            vals[y] = pixel_to_brightness(pixel);
+            brightnesses[y] = pixel_to_brightness(pixel);
         }
 
-        send_col(&mut port, x as u8, &vals)?;
+        send_col(&mut port, x as u8, &brightnesses)?;
     }
     commit_cols(&mut port)?;
 
@@ -459,80 +342,3 @@ fn render_matrix(serialdev: &str, matrix: &[[u8; 34]; 9]) -> anyhow::Result<()> 
     Ok(())
 }
 
-/// Render up to five 5x6 pixel font items
-fn show_font(serialdev: &str, font_items: &[Vec<u8>]) -> anyhow::Result<()>{
-    let mut vals: [u8; 39] = [0x00; 39];
-
-    for (digit_i, digit_pixels) in font_items.iter().enumerate() {
-        let offset = digit_i * 7;
-        for pixel_x in 0..5 {
-            for pixel_y in 0..6 {
-                let pixel_value = digit_pixels[pixel_x + pixel_y * 5];
-                let i = (2 + pixel_x) + (9 * (pixel_y + offset));
-                if pixel_value == 1 {
-                    vals[i / 8] |= 1 << (i % 8);
-                }
-            }
-        }
-    }
-
-    simple_cmd(serialdev, Command::DisplayBwImage, &vals)?;
-    
-    Ok(())
-}
-
-fn animation_fps_cmd(serialdev: &str, arg: Option<u16>) -> anyhow::Result<()> {
-    let mut port = serialport::new(serialdev, 115_200)
-        .timeout(SERIAL_TIMEOUT)
-        .open()
-        .expect("Failed to open port");
-
-    if let Some(fps) = arg {
-        let period = (1000 / fps).to_le_bytes();
-        simple_cmd_port(&mut port, Command::AnimationPeriod, &[period[0], period[1]])?;
-    } else {
-        simple_cmd_port(&mut port, Command::AnimationPeriod, &[])?;
-
-        let mut response: Vec<u8> = vec![0; 32];
-        port.read_exact(response.as_mut_slice())?;
-
-        let period = u16::from_le_bytes([response[0], response[1]]);
-        println!("Animation Frequency: {}ms / {}Hz", period, 1_000 / period);
-    }
-
-    Ok(())
-}
-
-fn pwm_freq_cmd(serialdev: &str, arg: Option<u16>) -> anyhow::Result<()> {
-    let mut port = serialport::new(serialdev, 115_200)
-        .timeout(SERIAL_TIMEOUT)
-        .open()?;
-
-    if let Some(freq) = arg {
-        let hz = match freq {
-            29000 => 0,
-            3600 => 1,
-            1800 => 2,
-            900 => 3,
-            _ => panic!("Invalid frequency"),
-        };
-        simple_cmd_port(&mut port, Command::PwmFreq, &[hz])?;
-    } else {
-        simple_cmd_port(&mut port, Command::PwmFreq, &[])?;
-
-        let mut response: Vec<u8> = vec![0; 32];
-        port.read_exact(response.as_mut_slice())
-            .expect("Found no data!");
-
-        let hz = match response[0] {
-            0 => 29000,
-            1 => 3600,
-            2 => 1800,
-            3 => 900,
-            _ => panic!("Invalid frequency"),
-        };
-        println!("Animation Frequency: {}Hz", hz);
-    }
-
-    Ok(())
-}
