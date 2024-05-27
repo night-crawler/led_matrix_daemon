@@ -2,14 +2,14 @@ use std::io::Cursor;
 use std::sync::{Arc, Mutex};
 
 use actix_web::{post, web};
-use image::{DynamicImage, GrayImage, ImageBuffer};
+use image::GrayImage;
 use serde::Deserialize;
 use serde_with::base64::Base64;
 use serde_with::serde_as;
 use tokio::task::JoinSet;
-use tracing::info;
+use tokio::time::Instant;
 
-use crate::api::AppState;
+use crate::api::{AppState, RenderResponse};
 use crate::api::error::ApiError;
 use crate::config::led_matrix_config::LedMatrixConfig;
 use crate::hw::port::Port;
@@ -39,7 +39,9 @@ impl SingleRenderRequest {
     }
 
     fn buf_to_gray_image(buf: &[u8]) -> Result<GrayImage, ApiError> {
-        let image = image::io::Reader::new(Cursor::new(buf)).with_guessed_format()?.decode()?;
+        let image = image::io::Reader::new(Cursor::new(buf))
+            .with_guessed_format()?
+            .decode()?;
         Ok(image.into_luma8())
     }
 
@@ -53,15 +55,11 @@ impl SingleRenderRequest {
         let mut join_set: JoinSet<Result<(), ApiError>> = JoinSet::new();
 
         if let Some(left_image) = left_image {
-            join_set.spawn_blocking(move || {
-                Self::render_port(left_port, left_image)
-            });
+            join_set.spawn_blocking(move || Self::render_port(left_port, left_image));
         }
 
         if let Some(right_image) = right_image {
-            join_set.spawn_blocking(move || {
-                Self::render_port(right_port, right_image)
-            });
+            join_set.spawn_blocking(move || Self::render_port(right_port, right_image));
         }
 
         while let Some(result) = join_set.join_next().await {
@@ -79,13 +77,16 @@ impl SingleRenderRequest {
 }
 
 #[post("/render/base64")]
-pub async fn render_base64(render_request: web::Json<SingleRenderRequest>, state: web::Data<AppState>) -> Result<String, ApiError> {
+pub async fn render_base64(
+    render_request: web::Json<SingleRenderRequest>,
+    state: web::Data<AppState>,
+) -> Result<web::Json<RenderResponse>, ApiError> {
+    let start = Instant::now();
     render_request.render(&state.config).await?;
+    let elapsed = start.elapsed();
 
-    info!(?state, "Rendering base64 images");
-
-    format!("Request number: {render_request:?}");
-
-    Ok("".to_string())
+    Ok(web::Json(RenderResponse {
+        elapsed_ms: elapsed.as_millis(),
+        success: true,
+    }))
 }
-

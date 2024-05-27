@@ -1,5 +1,8 @@
+use std::fmt::Display;
+
 use actix_web::{HttpResponse, ResponseError};
 use actix_web::http::StatusCode;
+use serde::Serialize;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
@@ -19,6 +22,7 @@ pub enum ApiError {
     JoinError(#[from] tokio::task::JoinError),
 }
 
+#[derive(Debug, Serialize)]
 struct ErrorMessage {
     message: String,
 }
@@ -36,6 +40,12 @@ impl ResponseError for ApiError {
         }
     }
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code()).body(self.to_string())
+        let message = ErrorMessage {
+            message: self.to_string(),
+        };
+        // serialize message to json
+        let body = serde_json::to_string(&message).unwrap_or("null".to_string());
+
+        HttpResponse::build(self.status_code()).body(body)
     }
 }

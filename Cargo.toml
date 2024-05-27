@@ -11,6 +11,7 @@ anyhow = "1"
 thiserror = "1"
 
 serde = { version = "1", features = ["default", "derive", "rc"] }
+serde_json = "1"
 serde_with = { version = "3.8", features = ["base64"] }
 toml = "0.8"
 
@@ -20,7 +21,9 @@ chrono = { version = "0.4", features = ["default", "serde"] }
 chrono-tz = { version = "0.9", features = ["default", "serde"] }
 
 tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
 actix-web = "4"
+actix-multipart = "0.6"
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "json"] }

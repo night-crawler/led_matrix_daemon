@@ -10,6 +10,7 @@ use tracing::info;
 
 use crate::api::AppState;
 use crate::api::base64::render_base64;
+use crate::api::files::render_files;
 use crate::cli::cmd_args::CmdArgs;
 use crate::config::led_matrix_config::LedMatrixConfig;
 use crate::config::lef_matrix_config_dto::LedMatrixConfigDto;
@@ -20,21 +21,6 @@ mod config;
 mod hw;
 mod init;
 mod api;
-
-
-#[get("/")]
-async fn hello() -> impl Responder {
-    info!("bla ???");
-
-    HttpResponse::Ok().body("Hello world!")
-}
-
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    info!("???");
-    HttpResponse::Ok().body(req_body)
-}
-
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -51,9 +37,8 @@ async fn main() -> anyhow::Result<()> {
 
     let mut server = HttpServer::new(move || {
         App::new()
-            .service(hello)
-            .service(echo)
             .service(render_base64)
+            .service(render_files)
             .app_data(state.clone())
     });
 
