@@ -8,9 +8,10 @@ image = "0.25"
 clap = { version = "4.5", features = ["derive"] }
 serialport = "4.3"
 anyhow = "1"
+thiserror = "1"
 
 serde = { version = "1", features = ["default", "derive", "rc"] }
-serde_with = "3.8"
+serde_with = { version = "3.8", features = ["base64"] }
 toml = "0.8"
 
 humantime = { version = "2" }
@@ -18,5 +19,10 @@ humantime-serde = "1.1"
 chrono = { version = "0.4", features = ["default", "serde"] }
 chrono-tz = { version = "0.9", features = ["default", "serde"] }
 
-rocket = "0.5"
 tokio = { version = "1", features = ["full"] }
+actix-web = "4"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "json"] }
+console-subscriber = { version = "0.2", features = ["env-filter"] }
+atty = { version = "0.2", features = [] }

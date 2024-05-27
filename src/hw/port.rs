@@ -93,7 +93,6 @@ impl Port {
         self.write_command(Command::CommitCols, &[])
     }
 
-
     pub fn display_gray_image_by_path(&mut self, image_path: &str) -> anyhow::Result<()> {
         let img = ImageReader::open(image_path)?.decode()?.to_luma8();
         self.display_gray_image(&img)
