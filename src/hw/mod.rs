@@ -1,22 +1,14 @@
-use std::time::Duration;
-
 use image::Luma;
 
-pub mod sync_impl;
-pub mod renderer;
 pub mod port;
 pub mod device_version;
 
 pub const FWK_MAGIC: &[u8] = &[0x32, 0xAC];
 pub const FRAMEWORK_VID: u16 = 0x32AC;
-pub const LED_MATRIX_PID: u16 = 0x0020;
 
-type Brightness = u8;
 
 const WIDTH: usize = 9;
 const HEIGHT: usize = 34;
-
-const SERIAL_TIMEOUT: Duration = Duration::from_millis(2000);
 
 #[derive(Clone, Copy, Debug, PartialEq, clap::ValueEnum)]
 #[repr(u8)]

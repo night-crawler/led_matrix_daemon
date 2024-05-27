@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+
+cd "$(dirname "$0")"
+
 curl --unix-socket /tmp/led-matrix.sock -X POST \
   -F "file1=@./img.png" \
   -F "file2=@./img.jpg" \

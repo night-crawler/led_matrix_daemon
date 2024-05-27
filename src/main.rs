@@ -1,11 +1,15 @@
 #![feature(let_chains)]
 #![feature(if_let_guard)]
+#![feature(array_chunks)]
+#![feature(iter_array_chunks)]
 
 use std::path::Path;
+use std::sync::Arc;
 
 use actix_web::{App, get, HttpResponse, HttpServer, post, Responder, web};
 use clap::Parser;
 use tokio::sync::Mutex;
+use tokio::task::JoinSet;
 use tracing::info;
 
 use crate::api::AppState;
@@ -16,11 +20,11 @@ use crate::config::led_matrix_config::LedMatrixConfig;
 use crate::config::lef_matrix_config_dto::LedMatrixConfigDto;
 use crate::init::init_tracing;
 
+mod api;
 mod cli;
 mod config;
 mod hw;
 mod init;
-mod api;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -28,12 +32,13 @@ async fn main() -> anyhow::Result<()> {
     let cmd_args = CmdArgs::parse();
 
     let config = LedMatrixConfigDto::try_from(cmd_args.config.as_path())?;
-    let config = LedMatrixConfig::try_from(config)?;
+    let config = Arc::new(LedMatrixConfig::try_from(config)?);
 
     let unix_socket = config.unix_socket.clone();
     let listen_address = config.listen_address.clone();
 
-    let state = web::Data::new(AppState { config });
+    let (sender, receiver) = kanal::bounded_async(1);
+    let state = web::Data::new(AppState { sender });
 
     let mut server = HttpServer::new(move || {
         App::new()
@@ -54,7 +59,31 @@ async fn main() -> anyhow::Result<()> {
         server = server.bind(listen_address.as_ref())?;
     }
 
-    server.workers(1).run().await?;
+    let mut join_set: JoinSet<anyhow::Result<()>> = JoinSet::new();
+    let server = server.workers(config.num_http_workers).run();
+    join_set.spawn(async move {
+        server.await?;
+        Ok(())
+    });
+
+    join_set.spawn(async move {
+        let thread_pool = Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?);
+
+        while let render_task = receiver.recv().await? {
+            let config = config.clone();
+            let thread_pool = thread_pool.clone();
+            tokio::task::spawn_blocking(move || {
+                render_task.render(config.as_ref(), thread_pool.as_ref())
+            })
+                .await??;
+        }
+        Ok(())
+    });
+
+    while let Some(result) = join_set.join_next().await {
+        let result = result?;
+        info!("Server stopped: {:?}", result);
+    }
 
     Ok(())
 }

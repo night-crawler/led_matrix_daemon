@@ -13,6 +13,8 @@ pub struct LedMatrixConfig {
 
     pub listen_address: Option<Arc<SocketAddr>>,
     pub unix_socket: Option<Arc<String>>,
+    pub max_queue_size: usize,
+    pub num_http_workers: usize
 }
 
 impl TryFrom<LedMatrixConfigDto> for LedMatrixConfig {
@@ -27,6 +29,9 @@ impl TryFrom<LedMatrixConfigDto> for LedMatrixConfig {
             right_port: Arc::new(Mutex::new(Port::try_from(value.right_port)?)),
             listen_address: value.listen_address.map(Arc::new),
             unix_socket: value.unix_socket.map(Arc::new),
+
+            max_queue_size: value.max_queue_size,
+            num_http_workers: value.num_http_workers,
         })
     }
 }

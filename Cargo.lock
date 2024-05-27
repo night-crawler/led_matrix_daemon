@@ -1449,6 +1449,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kanal"
+version = "0.1.0-pre8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b05d55519627edaf7fd0f29981f6dc03fb52df3f5b257130eb8d0bf2801ea1d7"
+dependencies = [
+    "futures-core",
+    "lock_api",
+]
+
+[[package]]
 name = "language-tags"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1482,6 +1492,8 @@ dependencies = [
     "humantime",
     "humantime-serde",
  "image",
+    "kanal",
+    "rayon",
     "serde",
     "serde_json",
     "serde_with",

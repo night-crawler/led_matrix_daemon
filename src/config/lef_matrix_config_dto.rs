@@ -12,6 +12,12 @@ pub struct LedMatrixConfigDto {
 
     pub listen_address: Option<SocketAddr>,
     pub unix_socket: Option<String>,
+
+    #[serde(default = "super::default_max_queue_size")]
+    pub max_queue_size: usize,
+    // default 1
+    #[serde(default = "super::default_http_workers")]
+    pub num_http_workers: usize
 }
 
 
@@ -48,6 +54,8 @@ mod tests {
             },
             listen_address: SocketAddr::from(([127, 0, 0, 1], 45935)).into(),
             unix_socket: "/tmp/led-matrix.sock".to_string().into(),
+            max_queue_size: 10,
+            num_http_workers: 1,
         };
 
         let repr = toml::to_string(&config)?;

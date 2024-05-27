@@ -23,3 +23,11 @@ fn default_baud_rate() -> u32 {
 fn default_timeout() -> Duration {
     Duration::from_secs(2)
 }
+
+fn default_http_workers() -> usize {
+    1
+}
+
+fn default_max_queue_size() -> usize {
+    1
+}

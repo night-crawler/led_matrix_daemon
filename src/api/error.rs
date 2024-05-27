@@ -20,6 +20,9 @@ pub enum ApiError {
 
     #[error("Join error: {0}")]
     JoinError(#[from] tokio::task::JoinError),
+
+    #[error("Send error: {0}")]
+    SendError(#[from] kanal::SendError),
 }
 
 #[derive(Debug, Serialize)]
@@ -37,6 +40,7 @@ impl ResponseError for ApiError {
             ApiError::IoError(_) => StatusCode::BAD_REQUEST,
             ApiError::ImageError(_) => StatusCode::BAD_REQUEST,
             ApiError::JoinError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::SendError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
     fn error_response(&self) -> HttpResponse {
