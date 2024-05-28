@@ -4,6 +4,7 @@ use std::time::Duration;
 use anyhow::bail;
 use image::{GrayImage, io::Reader as ImageReader};
 use serialport::SerialPort;
+use tracing::warn;
 
 use crate::config::port_dto::PortDto;
 use crate::hw::{Command, FWK_MAGIC, HEIGHT, pixel_to_brightness, WIDTH};
@@ -16,6 +17,7 @@ pub struct Port {
     timeout: Duration,
     port: Option<Box<dyn SerialPort>>,
     keep_open: bool,
+    wait_delay: Option<Duration>,
 }
 
 impl TryFrom<PortDto> for Port {
@@ -30,21 +32,37 @@ impl TryFrom<PortDto> for Port {
             baud_rate: value.baud_rate,
             timeout: value.timeout,
             keep_open: value.keep_open,
+            wait_delay: value.wait_delay,
         })
     }
 }
 
 impl Port {
-    fn open(&mut self) -> anyhow::Result<&mut Box<dyn SerialPort>> {
-        if self.port.is_none() {
-            self.port = Some(
-                serialport::new(self.path.as_ref(), self.baud_rate)
-                    .timeout(self.timeout)
-                    .open()?,
-            );
+    fn open(&mut self) -> serialport::Result<&mut Box<dyn SerialPort>> {
+        let port = &mut self.port;
+        if let Some(port) = port {
+            return Ok(port);
         }
 
-        Ok(self.port.as_mut().unwrap())
+        loop {
+            let error = match serialport::new(self.path.as_ref(), self.baud_rate)
+                .timeout(self.timeout)
+                .open()
+            {
+                Ok(next_port) => {
+                    port.replace(next_port);
+                    return Ok(port.as_mut().unwrap());
+                }
+                Err(err) => err,
+            };
+
+            if let Some(delay) = self.wait_delay {
+                warn!(?error, port = %self.path.as_ref(), "Failed to open port");
+                std::thread::sleep(delay);
+            } else {
+                return Err(error);
+            }
+        }
     }
 
     fn close(&mut self) {
@@ -68,7 +86,12 @@ impl Port {
         Ok(())
     }
 
-    fn write_read_command(&mut self, command: Command, data: &[u8], read_buffer: &mut [u8]) -> anyhow::Result<()> {
+    fn write_read_command(
+        &mut self,
+        command: Command,
+        data: &[u8],
+        read_buffer: &mut [u8],
+    ) -> anyhow::Result<()> {
         let buffer = self.prepare_command_buffer(command, data);
         let port = self.open()?;
 
@@ -151,6 +174,7 @@ mod tests {
             timeout: Duration::from_secs(20),
             port: None,
             keep_open: true,
+            wait_delay: Some(Duration::from_millis(10)),
         }
     }
 
@@ -171,7 +195,11 @@ mod tests {
     #[test]
     fn test_display_gray_image() {
         let mut port = get_port();
-        assert!(port.display_gray_image_by_path("test_data/img0.png").is_ok());
-        assert!(port.display_gray_image_by_path("test_data/img0.jpg").is_ok());
+        assert!(port
+            .display_gray_image_by_path("test_data/img0.png")
+            .is_ok());
+        assert!(port
+            .display_gray_image_by_path("test_data/img0.jpg")
+            .is_ok());
     }
 }

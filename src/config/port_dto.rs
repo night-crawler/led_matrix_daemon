@@ -9,8 +9,11 @@ pub struct PortDto {
     #[serde(default = "super::default_baud_rate")]
     pub baud_rate: u32,
 
-    #[serde(with = "humantime_serde", default = "super::default_timeout")]
+    #[serde(with = "humantime_serde", default = "super::default_port_timeout")]
     pub timeout: Duration,
+
+    #[serde(with = "humantime_serde", default)]
+    pub wait_delay: Option<Duration>,
 
     #[serde(default = "super::yes")]
     pub keep_open: bool,

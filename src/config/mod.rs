@@ -13,7 +13,7 @@ fn default_baud_rate() -> u32 {
     115200
 }
 
-fn default_timeout() -> Duration {
+fn default_port_timeout() -> Duration {
     Duration::from_secs(2)
 }
 
