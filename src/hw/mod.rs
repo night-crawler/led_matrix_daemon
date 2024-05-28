@@ -4,8 +4,6 @@ pub mod port;
 pub mod device_version;
 
 pub const FWK_MAGIC: &[u8] = &[0x32, 0xAC];
-pub const FRAMEWORK_VID: u16 = 0x32AC;
-
 
 const WIDTH: usize = 9;
 const HEIGHT: usize = 34;
@@ -25,6 +23,7 @@ pub enum Pattern {
 }
 
 
+#[allow(dead_code)]
 #[derive(Clone, Copy)]
 #[repr(u8)]
 enum Command {

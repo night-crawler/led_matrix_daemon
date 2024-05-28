@@ -6,10 +6,10 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use actix_web::{App, get, HttpResponse, HttpServer, post, Responder, web};
+use actix_web::{App, HttpServer, web};
 use clap::Parser;
-use tokio::sync::Mutex;
 use tokio::task::JoinSet;
+use tokio::time::Instant;
 use tracing::info;
 
 use crate::api::AppState;
@@ -33,11 +33,12 @@ async fn main() -> anyhow::Result<()> {
 
     let config = LedMatrixConfigDto::try_from(cmd_args.config.as_path())?;
     let config = Arc::new(LedMatrixConfig::try_from(config)?);
+    config.log_led_matrix_versions()?;
 
     let unix_socket = config.unix_socket.clone();
     let listen_address = config.listen_address.clone();
 
-    let (sender, receiver) = kanal::bounded_async(1);
+    let (sender, receiver) = kanal::bounded_async(config.max_queue_size);
     let state = web::Data::new(AppState { sender });
 
     let mut server = HttpServer::new(move || {
@@ -67,20 +68,18 @@ async fn main() -> anyhow::Result<()> {
     });
 
     join_set.spawn(async move {
-        let thread_pool = Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?);
-
-        while let render_task = receiver.recv().await? {
+        loop {
+            let render_task = receiver.recv().await?;
+            let start = Instant::now();
+            
             let config = config.clone();
-            let thread_pool = thread_pool.clone();
-            tokio::task::spawn_blocking(move || {
-                render_task.render(config.as_ref(), thread_pool.as_ref())
-            })
-                .await??;
+            render_task.render(config).await?;
+
+            info!("Rendered task in {:?}", start.elapsed());
         }
-        Ok(())
     });
 
-    while let Some(result) = join_set.join_next().await {
+    if let Some(result) = join_set.join_next().await {
         let result = result?;
         info!("Server stopped: {:?}", result);
     }

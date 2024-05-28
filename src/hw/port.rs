@@ -50,24 +50,42 @@ impl Port {
     fn close(&mut self) {
         self.port.take();
     }
-    fn write_command(&mut self, command: Command, args: &[u8]) -> anyhow::Result<()> {
+
+    fn prepare_command_buffer(&mut self, command: Command, args: &[u8]) -> [u8; 64] {
         let mut buffer: [u8; 64] = [0; 64];
         buffer[..2].copy_from_slice(FWK_MAGIC);
         buffer[2] = command as u8;
         buffer[3..3 + args.len()].copy_from_slice(args);
 
-        self.open()?.write_all(&buffer[..3 + args.len()])?;
+        buffer
+    }
+    fn write_command(&mut self, command: Command, data: &[u8]) -> anyhow::Result<()> {
+        let buffer = self.prepare_command_buffer(command, data);
+        self.open()?.write_all(&buffer[..3 + data.len()])?;
+        if !self.keep_open {
+            self.close();
+        }
+        Ok(())
+    }
+
+    fn write_read_command(&mut self, command: Command, data: &[u8], read_buffer: &mut [u8]) -> anyhow::Result<()> {
+        let buffer = self.prepare_command_buffer(command, data);
+        let port = self.open()?;
+
+        port.write_all(&buffer[..3 + data.len()])?;
+        port.read_exact(read_buffer)?;
+
+        if !self.keep_open {
+            self.close();
+        }
 
         Ok(())
     }
 
-    fn get_device_version(&mut self) -> anyhow::Result<DeviceVersion> {
+    pub fn get_device_version(&mut self) -> anyhow::Result<DeviceVersion> {
         let mut response: Vec<u8> = vec![0; 32];
 
-        self.write_command(Command::Version, &[])?;
-
-        let port = self.open()?;
-        port.read_exact(response.as_mut_slice())?;
+        self.write_read_command(Command::Version, &[], response.as_mut_slice())?;
 
         let major = response[0];
         let minor = (response[1] & 0xF0) >> 4;
@@ -93,6 +111,7 @@ impl Port {
         self.write_command(Command::CommitCols, &[])
     }
 
+    #[allow(dead_code)]
     pub fn display_gray_image_by_path(&mut self, image_path: &str) -> anyhow::Result<()> {
         let img = ImageReader::open(image_path)?.decode()?.to_luma8();
         self.display_gray_image(&img)
@@ -131,26 +150,28 @@ mod tests {
             baud_rate: 115200,
             timeout: Duration::from_secs(20),
             port: None,
-            keep_open: false,
+            keep_open: true,
         }
     }
 
     #[test]
     fn test_get_device_version() {
-        assert!(get_port().get_device_version().is_ok());
+        let version = get_port().get_device_version();
+        println!("{version:?}");
+        assert!(version.is_ok());
     }
 
     #[test]
     fn test_send_col() {
         let mut port = get_port();
-        assert!(port.send_col(0, &[0, 10, 2, 3, 4, 5, 6, 70]).is_ok());
+        assert!(port.send_col(1, &[0, 255, 2, 255, 4, 5, 6, 70]).is_ok());
         assert!(port.commit_cols().is_ok());
     }
 
     #[test]
     fn test_display_gray_image() {
         let mut port = get_port();
-        assert!(port.display_gray_image_by_path("test_data/img.png").is_ok());
-        assert!(port.display_gray_image_by_path("test_data/img.png").is_ok());
+        assert!(port.display_gray_image_by_path("test_data/img0.png").is_ok());
+        assert!(port.display_gray_image_by_path("test_data/img0.jpg").is_ok());
     }
 }

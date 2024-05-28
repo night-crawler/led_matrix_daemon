@@ -5,10 +5,10 @@ unix_socket = "/tmp/led-matrix.sock"
 path = "/dev/ttyACM0"
 baud_rate = 115200
 timeout = "2s"
-keep_open = false
+keep_open = true
 
 [right_port]
 path = "/dev/ttyACM1"
 baud_rate = 115200
 timeout = "2s"
-keep_open = false
+keep_open = true

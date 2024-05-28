@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use actix_web::{HttpResponse, ResponseError};
 use actix_web::http::StatusCode;
 use serde::Serialize;

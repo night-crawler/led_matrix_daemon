@@ -8,13 +8,6 @@ fn yes() -> bool {
     true
 }
 
-fn no() -> bool {
-    false
-}
-
-fn one() -> Option<usize> {
-    Some(1)
-}
 
 fn default_baud_rate() -> u32 {
     115200

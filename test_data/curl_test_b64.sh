@@ -10,8 +10,8 @@ trap clean_up EXIT
 
 cd "$(dirname "$0")"
 
-base64 -w0 ./img.png > left_image.b64
-base64 -w0 ./img.jpg > right_image.b64
+base64 -w0 ./img0.png > left_image.b64
+base64 -w0 ./img0.jpg > right_image.b64
 
 LEFT_IMAGE=$(cat left_image.b64)
 RIGHT_IMAGE=$(cat right_image.b64)

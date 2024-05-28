@@ -3,15 +3,13 @@ set -e
 
 cd "$(dirname "$0")"
 
-curl --unix-socket /tmp/led-matrix.sock -X POST \
-  -F "file1=@./img.png" \
-  -F "file2=@./img.jpg" \
-  -F "file3=@./img.jpg" \
-  -F "file4=@./img.jpg" \
-  -F "file5=@./img.jpg" \
-  -F "file6=@./img.jpg" \
-  -F "file7=@./img.jpg" \
-  -F "file8=@./img.jpg" \
-  -F "file9=@./img.jpg" \
-  -F "file10=@./img.jpg" \
-  http://localhost/render/files
+# Create an array to hold the form data
+form_data=()
+
+# Loop through indices 0 to 15 and add each file twice
+for i in {0..15}; do
+  form_data+=("-F" "file-a-${i}=@./img${i}.png" "-F" "file-b-${i}=@./img${i}.png")
+done
+
+# Execute the curl command with the form data
+curl --unix-socket /tmp/led-matrix.sock -X POST "${form_data[@]}" http://localhost/render/files

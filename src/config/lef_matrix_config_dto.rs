@@ -7,8 +7,8 @@ use crate::config::port_dto::PortDto;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct LedMatrixConfigDto {
-    pub left_port: PortDto,
-    pub right_port: PortDto,
+    pub left_port: Option<PortDto>,
+    pub right_port: Option<PortDto>,
 
     pub listen_address: Option<SocketAddr>,
     pub unix_socket: Option<String>,
@@ -45,13 +45,13 @@ mod tests {
                 baud_rate: 115200,
                 timeout: Duration::from_secs(2),
                 keep_open: false,
-            },
+            }.into(),
             right_port: PortDto {
                 path: "/dev/ttyACM1".to_string(),
                 baud_rate: 115200,
                 timeout: Duration::from_secs(2),
                 keep_open: false,
-            },
+            }.into(),
             listen_address: SocketAddr::from(([127, 0, 0, 1], 45935)).into(),
             unix_socket: "/tmp/led-matrix.sock".to_string().into(),
             max_queue_size: 10,
