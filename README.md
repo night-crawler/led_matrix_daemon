@@ -56,6 +56,9 @@ Configuration sample:
 listen_address = "127.0.0.1:45935"
 unix_socket = "/tmp/led-matrix.sock"
 
+max_queue_size = 10
+num_http_workers = 4
+
 [left_port]
 path = "/dev/ttyACM0"
 baud_rate = 115200
