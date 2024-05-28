@@ -3,6 +3,8 @@ use actix_web::{post, web};
 use actix_web::web::{BytesMut, Json};
 use anyhow::anyhow;
 use futures_util::{StreamExt, TryStreamExt};
+use image::GrayImage;
+use kanal::AsyncSender;
 
 use crate::api::{AppState, RenderResponse, RenderTask};
 use crate::api::error::ApiError;
@@ -29,18 +31,49 @@ pub async fn render_files(
         images.push(image);
     }
 
-    let mut iter = images.into_iter().array_chunks::<2>();
-
-    while let Some([left, right]) = iter.next() {
-        state.sender.send(RenderTask::Both(left, right)).await?;
-    }
-
-    if let Some(mut rem) = iter.into_remainder() && let Some(left) = rem.next() {
-        state.sender.send(RenderTask::Left(left)).await?;
+    match (
+        state.config.left_port.as_ref(),
+        state.config.right_port.as_ref(),
+    ) {
+        (Some(_), Some(_)) => {
+            queue_even_odd(images, &state.sender).await?;
+        }
+        (Some(_), None) => {
+            for image in images {
+                state.sender.send(RenderTask::Left(image)).await?;
+            }
+        }
+        (None, Some(_)) => {
+            for image in images {
+                state.sender.send(RenderTask::Right(image)).await?;
+            }
+        }
+        (None, None) => {
+            return Err(ApiError::InternalError(anyhow!("No ports configured")));
+        }
     }
 
     Ok(Json(RenderResponse {
         queue_len: state.sender.len(),
-        success: true,
+        queued: true,
     }))
+}
+
+async fn queue_even_odd(
+    images: Vec<GrayImage>,
+    sender: &AsyncSender<RenderTask>,
+) -> anyhow::Result<()> {
+    let mut iter = images.into_iter().array_chunks::<2>();
+
+    while let Some([left, right]) = iter.next() {
+        sender.send(RenderTask::Both(left, right)).await?;
+    }
+
+    if let Some(mut rem) = iter.into_remainder()
+        && let Some(left) = rem.next()
+    {
+        sender.send(RenderTask::Left(left)).await?;
+    }
+
+    Ok(())
 }

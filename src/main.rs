@@ -10,10 +10,10 @@ use actix_web::{App, HttpServer, web};
 use clap::Parser;
 use tokio::task::JoinSet;
 use tokio::time::Instant;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::api::AppState;
-use crate::api::base64::render_base64;
+use crate::api::base64::{render_base64, render_base64_multiple};
 use crate::api::files::render_files;
 use crate::cli::cmd_args::CmdArgs;
 use crate::config::led_matrix_config::LedMatrixConfig;
@@ -39,11 +39,12 @@ async fn main() -> anyhow::Result<()> {
     let listen_address = config.listen_address.clone();
 
     let (sender, receiver) = kanal::bounded_async(config.max_queue_size);
-    let state = web::Data::new(AppState { sender });
+    let state = web::Data::new(AppState { sender, config: config.clone() });
 
     let mut server = HttpServer::new(move || {
         App::new()
             .service(render_base64)
+            .service(render_base64_multiple)
             .service(render_files)
             .app_data(state.clone())
     });
@@ -73,9 +74,15 @@ async fn main() -> anyhow::Result<()> {
             let start = Instant::now();
             
             let config = config.clone();
-            render_task.render(config).await?;
+            match render_task.render(config).await {
+                Ok(_) => {
+                    info!("Rendered task in {:?}", start.elapsed());
+                }
+                Err(err) => {
+                    error!(?err, "Failed to render task");
+                }
+            };
 
-            info!("Rendered task in {:?}", start.elapsed());
         }
     });
 
