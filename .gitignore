@@ -1,2 +1,4 @@
 /target
 .idea
+src/led_matrix_daemon*.tar.gz
+src/led_matrix_daemon-*
