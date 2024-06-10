@@ -4,11 +4,11 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc="A daemon that renders images on a LED matrix connected to a Framework 16 Laptop"
 arch=('x86_64')
-url="https://github.com/night-crawler/led-matrix-daemon"
+url="https://github.com/night-crawler/$pkgname"
 license=('MIT')
 depends=()
 makedepends=('rust')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/night-crawler/led-matrix-daemon/archive/$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/night-crawler/$pkgname/archive/$pkgver.tar.gz")
 sha512sums=('SKIP')
 
 build() {
@@ -20,9 +20,9 @@ build() {
 package() {
   cd "$pkgname-$pkgver"
 
-  install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$led_matrix_daemon"
+  install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
 
-  install -Dm644 "$srcdir/$pkgname-$pkgver/led_matrix_daemon.service" "$pkgdir/usr/lib/systemd/system/led_matrix_daemon.service"
+  install -Dm644 "$srcdir/$pkgname-$pkgver/led_matrix_daemon.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
   install -Dm644 "$srcdir/$pkgname-$pkgver/test_data/config.toml" "$pkgdir/etc/led_matrix/daemon.toml"
 
   install -Dm644 "README.md" "$pkgdir/usr/share/doc/${pkgname}/README.md"

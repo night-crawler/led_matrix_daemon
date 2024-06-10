@@ -27,7 +27,7 @@ actix-multipart = "0.6"
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "json"] }
-console-subscriber = { version = "0.2", features = ["env-filter"] }
+console-subscriber = { version = "0.3", features = ["env-filter"] }
 atty = { version = "0.2", features = [] }
 
 kanal = "0.1.0-pre8"
