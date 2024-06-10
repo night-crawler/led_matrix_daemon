@@ -12,8 +12,10 @@ use crate::api::error::ApiError;
 #[serde_as]
 #[derive(Deserialize, Debug)]
 struct SingleRenderRequest {
+    #[serde(default)]
     #[serde_as(as = "Base64")]
     left_image: Option<Vec<u8>>,
+    #[serde(default)]
     #[serde_as(as = "Base64")]
     right_image: Option<Vec<u8>>,
 }
@@ -78,4 +80,17 @@ fn prepare_task(mut render_request: SingleRenderRequest) -> Result<RenderTask, A
     };
 
     Ok(render_task)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_deserialize() {
+        let request = r#"
+        {"left_image":"iVBORw0KGgoAAAANSUhEUgAAAAkAAAAnCAAAAAD4XD2KAAABL0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMYuUKqFwBlSv4qcIVX6wCAO/bpgLAa03DqgA8fBpWRwJO9H3f94JZqbXUIiIiIiLqRhwAQCwWAEBsHwMA4sy1AEDc9CAAoD5kGwCoDzkBANSbTgMA9cw1AIC491oAEFdA5QqoXAGVK6ByBVSugMoVULkCKldA5QqoXAGVK6ByBVSugMoVULkCKldA5QqoXAH/CPdDDvUGNwlOAAAAAElFTkSuQmCC"}
+        "#;
+        assert!(serde_json::from_str::<SingleRenderRequest>(request).is_ok())
+    }
 }

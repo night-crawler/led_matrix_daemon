@@ -85,5 +85,5 @@ the left port, and odd-numbered data goes to the right port.
 - [Base64 mode multiple](test_data/curl_test_b64_multiple.sh)
 - [File mode](test_data/curl_test_file.sh)
 
-Remember, the size of the image must be 9x39.
+Remember, the size of the image must be 9x34.
 The daemon does not resize anything, it's deliberately stupid.

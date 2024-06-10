@@ -65,7 +65,7 @@ async fn queue_even_odd(
 ) -> anyhow::Result<()> {
     let mut iter = images.into_iter().array_chunks::<2>();
 
-    while let Some([left, right]) = iter.next() {
+    for [left, right] in iter.by_ref() {
         sender.send(RenderTask::Both(left, right)).await?;
     }
 

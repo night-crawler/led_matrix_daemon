@@ -151,9 +151,9 @@ impl Port {
         let mut brightnesses = [0; HEIGHT];
 
         for col in 0..WIDTH {
-            for row in 0..HEIGHT {
+            for (row, brightness) in brightnesses.iter_mut().enumerate() {
                 let pixel = img.get_pixel(col as u32, row as u32);
-                brightnesses[row] = pixel_to_brightness(pixel);
+                *brightness = pixel_to_brightness(pixel);
             }
             self.send_col(col as u8, &brightnesses)?;
         }

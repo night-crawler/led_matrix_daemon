@@ -5,13 +5,13 @@ max_queue_size = 100
 num_http_workers = 4
 
 [left_port]
-path = "/dev/ttyACM0"
+path = "/dev/ttyACM1"
 baud_rate = 115200
 timeout = "2s"
 keep_open = true
 
 [right_port]
-path = "/dev/ttyACM1"
+path = "/dev/ttyACM0"
 baud_rate = 115200
 timeout = "2s"
 keep_open = true
