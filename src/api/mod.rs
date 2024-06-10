@@ -10,7 +10,6 @@ mod error;
 pub mod files;
 mod render_task;
 
-
 #[derive(Debug)]
 pub struct AppState {
     pub sender: kanal::AsyncSender<RenderTask>,

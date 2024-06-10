@@ -17,9 +17,8 @@ pub struct LedMatrixConfigDto {
     pub max_queue_size: usize,
     // default 1
     #[serde(default = "super::default_http_workers")]
-    pub num_http_workers: usize
+    pub num_http_workers: usize,
 }
-
 
 impl TryFrom<&Path> for LedMatrixConfigDto {
     type Error = anyhow::Error;
@@ -46,14 +45,16 @@ mod tests {
                 timeout: Duration::from_secs(2),
                 wait_delay: None,
                 keep_open: false,
-            }.into(),
+            }
+                .into(),
             right_port: PortDto {
                 path: "/dev/ttyACM1".to_string(),
                 baud_rate: 115200,
                 timeout: Duration::from_secs(2),
                 wait_delay: None,
                 keep_open: false,
-            }.into(),
+            }
+                .into(),
             listen_address: SocketAddr::from(([127, 0, 0, 1], 45935)).into(),
             unix_socket: "/tmp/led-matrix.sock".to_string().into(),
             max_queue_size: 10,

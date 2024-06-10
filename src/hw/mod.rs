@@ -1,7 +1,7 @@
 use image::Luma;
 
-pub mod port;
 pub mod device_version;
+pub mod port;
 
 pub const FWK_MAGIC: &[u8] = &[0x32, 0xAC];
 
@@ -21,7 +21,6 @@ pub enum Pattern {
     LotusTopDown = 7,
     //AllBrightnesses
 }
-
 
 #[allow(dead_code)]
 #[derive(Clone, Copy)]
@@ -54,7 +53,6 @@ enum Command {
     DebugMode = 0x1F,
     Version = 0x20,
 }
-
 
 fn pixel_to_brightness(pixel: &Luma<u8>) -> u8 {
     let brightness = pixel.0[0];

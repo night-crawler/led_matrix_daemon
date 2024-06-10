@@ -39,7 +39,10 @@ async fn main() -> anyhow::Result<()> {
     let listen_address = config.listen_address.clone();
 
     let (sender, receiver) = kanal::bounded_async(config.max_queue_size);
-    let state = web::Data::new(AppState { sender, config: config.clone() });
+    let state = web::Data::new(AppState {
+        sender,
+        config: config.clone(),
+    });
 
     let mut server = HttpServer::new(move || {
         App::new()
@@ -72,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
         loop {
             let render_task = receiver.recv().await?;
             let start = Instant::now();
-            
+
             let config = config.clone();
             match render_task.render(config).await {
                 Ok(_) => {
@@ -82,7 +85,6 @@ async fn main() -> anyhow::Result<()> {
                     error!(?err, "Failed to render task");
                 }
             };
-
         }
     });
 

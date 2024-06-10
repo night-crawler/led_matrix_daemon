@@ -20,7 +20,9 @@ pub struct LedMatrixConfig {
 
 impl LedMatrixConfig {
     fn log_port_version(&self, position: &str, port: Arc<Mutex<Port>>) -> anyhow::Result<()> {
-        let mut port = port.lock().map_err(|err| anyhow!("Poisoned mutex: {err:?}"))?;
+        let mut port = port
+            .lock()
+            .map_err(|err| anyhow!("Poisoned mutex: {err:?}"))?;
         let version = port.get_device_version()?;
         info!(%version, "{position} led matrix");
         Ok(())
