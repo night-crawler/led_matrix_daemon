@@ -10,7 +10,7 @@ use actix_web::{web, App, HttpServer};
 use clap::Parser;
 use tokio::task::JoinSet;
 use tokio::time::Instant;
-use tracing::{error, info};
+use tracing::{debug, error, info, warn};
 
 use crate::api::base64::{render_base64, render_base64_multiple};
 use crate::api::files::render_files;
@@ -79,7 +79,7 @@ async fn main() -> anyhow::Result<()> {
             let config = config.clone();
             match render_task.render(config).await {
                 Ok(_) => {
-                    info!("Rendered task in {:?}", start.elapsed());
+                    debug!("Rendered task in {:?}", start.elapsed());
                 }
                 Err(err) => {
                     error!(?err, "Failed to render task");
@@ -90,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
 
     if let Some(result) = join_set.join_next().await {
         let result = result?;
-        info!("Server stopped: {:?}", result);
+        warn!("Server stopped: {:?}", result);
     }
 
     Ok(())
