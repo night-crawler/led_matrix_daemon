@@ -7,13 +7,14 @@ arch=('x86_64')
 url="https://github.com/night-crawler/$pkgname"
 license=('MIT')
 depends=('gcc-libs')
-makedepends=('rust' 'cargo')
+makedepends=('rust' 'cargo' 'clang')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/night-crawler/$pkgname/archive/$pkgver.tar.gz")
 sha512sums=('SKIP')
 
 build() {
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=nightly
+  export CC=clang
   cargo build --release --locked
 }
 
