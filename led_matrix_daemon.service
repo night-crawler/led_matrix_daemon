@@ -1,0 +1,13 @@
+[Unit]
+Description=LED Matrix Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/led_matrix_daemon
+Restart=on-failure
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

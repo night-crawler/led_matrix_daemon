@@ -6,6 +6,6 @@ use clap::Parser;
 #[command(author, version, about, long_about = r###"led_matrix_daemon"###)]
 pub struct CmdArgs {
     /// Path to the configuration file.
-    #[arg(short, long, default_value = "/etc/led_matrix_daemon/config.toml")]
+    #[arg(short, long, default_value = "/etc/led_matrix/daemon.toml")]
     pub config: PathBuf,
 }

@@ -22,10 +22,24 @@ send images to be displayed on the LED matrix.
 
 ### Build
 
+Install Rust:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Check out the repository and build the binary:
+
 ```bash
 git clone https://github.com/night-crawler/led-matrix-daemon.git
 cd led-matrix-daemon
 cargo build --release
+```
+
+Copy the binary to a location in your path:
+
+```bash
+sudo cp ./target/release/led_matrix_daemon /usr/local/bin
 ```
 
 ### Run Example Configuration
