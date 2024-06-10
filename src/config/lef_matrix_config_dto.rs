@@ -46,7 +46,7 @@ mod tests {
                 wait_delay: None,
                 keep_open: false,
             }
-                .into(),
+            .into(),
             right_port: PortDto {
                 path: "/dev/ttyACM1".to_string(),
                 baud_rate: 115200,
@@ -54,7 +54,7 @@ mod tests {
                 wait_delay: None,
                 keep_open: false,
             }
-                .into(),
+            .into(),
             listen_address: SocketAddr::from(([127, 0, 0, 1], 45935)).into(),
             unix_socket: "/tmp/led-matrix.sock".to_string().into(),
             max_queue_size: 10,
