@@ -6,15 +6,15 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use actix_web::{App, HttpServer, web};
+use actix_web::{web, App, HttpServer};
 use clap::Parser;
 use tokio::task::JoinSet;
 use tokio::time::Instant;
 use tracing::{error, info};
 
-use crate::api::AppState;
 use crate::api::base64::{render_base64, render_base64_multiple};
 use crate::api::files::render_files;
+use crate::api::AppState;
 use crate::cli::cmd_args::CmdArgs;
 use crate::config::led_matrix_config::LedMatrixConfig;
 use crate::config::lef_matrix_config_dto::LedMatrixConfigDto;

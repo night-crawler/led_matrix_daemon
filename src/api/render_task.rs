@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, bail};
-use futures_util::FutureExt;
 use futures_util::join;
+use futures_util::FutureExt;
 use image::GrayImage;
 use tokio::task::JoinHandle;
 

@@ -2,13 +2,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::bail;
-use image::{GrayImage, io::Reader as ImageReader};
+use image::{io::Reader as ImageReader, GrayImage};
 use serialport::SerialPort;
 use tracing::warn;
 
 use crate::config::port_dto::PortDto;
-use crate::hw::{Command, FWK_MAGIC, HEIGHT, pixel_to_brightness, WIDTH};
 use crate::hw::device_version::DeviceVersion;
+use crate::hw::{pixel_to_brightness, Command, FWK_MAGIC, HEIGHT, WIDTH};
 
 #[derive(Debug)]
 pub struct Port {
