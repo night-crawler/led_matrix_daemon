@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/led_matrix_daemon
+ExecStart=/usr/bin/led_matrix_daemon --config=/etc/led_matrix/daemon.toml
 Restart=on-failure
 User=root
 Group=root
