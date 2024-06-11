@@ -18,7 +18,7 @@ use crate::api::AppState;
 use crate::cli::cmd_args::CmdArgs;
 use crate::config::led_matrix_config::LedMatrixConfig;
 use crate::config::lef_matrix_config_dto::LedMatrixConfigDto;
-use crate::init::init_tracing;
+use crate::init::{get_systemd_socket, init_tracing};
 
 mod api;
 mod cli;
@@ -52,13 +52,35 @@ async fn main() -> anyhow::Result<()> {
             .app_data(state.clone())
     });
 
-    if let Some(socket_path) = unix_socket {
+    if let Some(ref socket_path) = unix_socket {
         if Path::new(socket_path.as_ref()).exists() {
             info!(%socket_path, "Removing existing socket file");
             std::fs::remove_file(socket_path.as_ref())?;
         }
-        server = server.bind_uds(socket_path.as_ref())?;
     };
+
+    match get_systemd_socket() {
+        Ok(Some(listener)) => {
+            server = server.listen_uds(listener)?;
+            info!("Listening to the Uix Socket provided by systemd");
+        }
+        Ok(None) => {
+            if let Some(socket_path) = unix_socket {
+                info!(%socket_path, "Binding manually provided unix socket");
+                server = server.bind_uds(socket_path.as_ref())?;
+            }
+        }
+        Err(err) => {
+            warn!(
+                ?err,
+                "Failed to bind to unix socket, falling back to provided socket path"
+            );
+            if let Some(socket_path) = unix_socket {
+                info!(%socket_path, "Binding manually provided unix socket");
+                server = server.bind_uds(socket_path.as_ref())?;
+            }
+        }
+    }
 
     if let Some(listen_address) = listen_address {
         server = server.bind(listen_address.as_ref())?;

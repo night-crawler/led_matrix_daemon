@@ -1,0 +1,10 @@
+[Unit]
+Description=LED Matrix Daemon Socket
+
+[Socket]
+ListenStream=/var/run/led-matrix/led-matrix.sock
+FileDescriptorName=uds
+SocketMode=0666
+
+[Install]
+WantedBy=sockets.target

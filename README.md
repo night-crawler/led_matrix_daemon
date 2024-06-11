@@ -20,6 +20,21 @@ send images to be displayed on the LED matrix.
 
 ## Installation
 
+### Arch Linux
+
+```bash
+yay -S led_matrix_daemon
+```
+
+Enable daemon with default configuration:
+
+```bash
+sudo systemctl enable --now led_matrix_daemon.socket
+sudo systemctl enable --now led_matrix_daemon.service
+```
+
+Configuration is located at `/etc/led_matrix/daemon.toml`.
+
 ### Build
 
 Install Rust:

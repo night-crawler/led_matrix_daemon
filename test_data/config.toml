@@ -1,5 +1,7 @@
 listen_address = "127.0.0.1:45935"
-unix_socket = "/var/run/led-matrix.sock"
+
+# superseeded by systemd socket if available
+unix_socket = "/var/run/led-matrix/led-matrix.sock"
 
 max_queue_size = 100
 num_http_workers = 4
