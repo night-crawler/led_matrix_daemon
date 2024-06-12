@@ -3,7 +3,6 @@
 #![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 
-use std::path::Path;
 use std::sync::Arc;
 
 use actix_web::{web, App, HttpServer};
@@ -51,13 +50,6 @@ async fn main() -> anyhow::Result<()> {
             .service(render_files)
             .app_data(state.clone())
     });
-
-    if let Some(ref socket_path) = unix_socket {
-        if Path::new(socket_path.as_ref()).exists() {
-            info!(%socket_path, "Removing existing socket file");
-            std::fs::remove_file(socket_path.as_ref())?;
-        }
-    };
 
     match get_systemd_socket() {
         Ok(Some(listener)) => {
