@@ -1,6 +1,7 @@
 [Unit]
 Description=LED Matrix Service
 After=network.target
+Requires=led_matrix_daemon.socket
 
 [Service]
 Type=simple
