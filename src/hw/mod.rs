@@ -1,5 +1,3 @@
-use image::Luma;
-
 pub mod device_version;
 pub mod port;
 
@@ -52,10 +50,4 @@ enum Command {
     PwmFreq = 0x1E,
     DebugMode = 0x1F,
     Version = 0x20,
-}
-
-fn pixel_to_brightness(pixel: &Luma<u8>) -> u8 {
-    let brightness = pixel.0[0];
-    let enhanced_brightness = 255.0 / (1.0 + f64::exp(-0.03 * (brightness as f64 - 128.0)));
-    enhanced_brightness as u8
 }

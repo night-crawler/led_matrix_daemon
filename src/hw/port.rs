@@ -2,13 +2,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::bail;
-use image::{io::Reader as ImageReader, GrayImage};
+use image::{io::Reader as ImageReader, GrayImage, Luma};
 use serialport::SerialPort;
 use tracing::warn;
 
 use crate::config::port_dto::PortDto;
 use crate::hw::device_version::DeviceVersion;
-use crate::hw::{pixel_to_brightness, Command, FWK_MAGIC, HEIGHT, WIDTH};
+use crate::hw::{Command, FWK_MAGIC, HEIGHT, WIDTH};
 
 #[derive(Debug)]
 pub struct Port {
@@ -137,10 +137,10 @@ impl Port {
     #[allow(dead_code)]
     pub fn display_gray_image_by_path(&mut self, image_path: &str) -> anyhow::Result<()> {
         let img = ImageReader::open(image_path)?.decode()?.to_luma8();
-        self.display_gray_image(&img)
+        self.display_gray_image(img)
     }
 
-    pub fn display_gray_image(&mut self, img: &GrayImage) -> anyhow::Result<()> {
+    pub fn display_gray_image(&mut self, img: GrayImage) -> anyhow::Result<()> {
         let width = img.width();
         let height = img.height();
 
@@ -149,11 +149,10 @@ impl Port {
         }
 
         let mut brightnesses = [0; HEIGHT];
-
         for col in 0..WIDTH {
             for (row, brightness) in brightnesses.iter_mut().enumerate() {
-                let pixel = img.get_pixel(col as u32, row as u32);
-                *brightness = pixel_to_brightness(pixel);
+                let &Luma([pixel]) = img.get_pixel(col as u32, row as u32);
+                *brightness = pixel;
             }
             self.send_col(col as u8, &brightnesses)?;
         }

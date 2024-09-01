@@ -29,8 +29,7 @@ yay -S led_matrix_daemon
 Enable daemon with default configuration:
 
 ```bash
-sudo systemctl enable --now led_matrix_daemon.socket
-sudo systemctl enable --now led_matrix_daemon.service
+sudo systemctl enable --now led_matrix_daemon.socket led_matrix_daemon.service
 ```
 
 Configuration is located at `/etc/led_matrix/daemon.toml`.
@@ -46,8 +45,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 Check out the repository and build the binary:
 
 ```bash
-git clone https://github.com/night-crawler/led-matrix-daemon.git
-cd led-matrix-daemon
+git clone https://github.com/night-crawler/led_matrix_daemon.git
+cd led_matrix_daemon
 cargo build --release
 ```
 

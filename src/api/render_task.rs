@@ -25,7 +25,7 @@ impl RenderTask {
             let mut port = port
                 .lock()
                 .map_err(|err| anyhow!("Poisoned mutex: {err:?}"))?;
-            port.display_gray_image(&image)?;
+            port.display_gray_image(image)?;
             Ok(())
         })
     }
