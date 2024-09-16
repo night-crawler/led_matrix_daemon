@@ -1,13 +1,14 @@
+use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
+use crate::config::led_matrix_config::LedMatrixConfig;
+use crate::hw::port::Port;
 use anyhow::{anyhow, bail};
 use futures_util::join;
 use futures_util::FutureExt;
 use image::GrayImage;
 use tokio::task::JoinHandle;
-
-use crate::config::led_matrix_config::LedMatrixConfig;
-use crate::hw::port::Port;
+use tracing::error;
 
 #[derive(Debug)]
 pub enum RenderTask {
@@ -25,7 +26,16 @@ impl RenderTask {
             let mut port = port
                 .lock()
                 .map_err(|err| anyhow!("Poisoned mutex: {err:?}"))?;
-            port.display_gray_image(image)?;
+
+            // We return ErrorKind::Other ourselves: stdlib does not use it, so we know that
+            // something wrong with the port has happened, and we'll try our luck and release 
+            // the handle, so we would not interfere with kernel device numbering
+            if let Err(err) = port.display_gray_image(image)
+                && err.kind() != ErrorKind::Other
+            {
+                error!(?err, ?port, "Shutting down the port");
+                port.close();
+            }
             Ok(())
         })
     }

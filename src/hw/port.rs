@@ -1,7 +1,8 @@
+use std::io;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::bail;
+use anyhow::anyhow;
 use image::{io::Reader as ImageReader, GrayImage, Luma};
 use serialport::SerialPort;
 use tracing::warn;
@@ -65,7 +66,7 @@ impl Port {
         }
     }
 
-    fn close(&mut self) {
+    pub fn close(&mut self) {
         self.port.take();
     }
 
@@ -77,7 +78,7 @@ impl Port {
 
         buffer
     }
-    fn write_command(&mut self, command: Command, data: &[u8]) -> anyhow::Result<()> {
+    fn write_command(&mut self, command: Command, data: &[u8]) -> io::Result<()> {
         let buffer = self.prepare_command_buffer(command, data);
         self.open()?.write_all(&buffer[..3 + data.len()])?;
         if !self.keep_open {
@@ -91,7 +92,7 @@ impl Port {
         command: Command,
         data: &[u8],
         read_buffer: &mut [u8],
-    ) -> anyhow::Result<()> {
+    ) -> io::Result<()> {
         let buffer = self.prepare_command_buffer(command, data);
         let port = self.open()?;
 
@@ -105,7 +106,7 @@ impl Port {
         Ok(())
     }
 
-    pub fn get_device_version(&mut self) -> anyhow::Result<DeviceVersion> {
+    pub fn get_device_version(&mut self) -> io::Result<DeviceVersion> {
         let mut response: Vec<u8> = vec![0; 32];
 
         self.write_read_command(Command::Version, &[], response.as_mut_slice())?;
@@ -123,29 +124,33 @@ impl Port {
         })
     }
 
-    fn send_col(&mut self, index: u8, vals: &[u8]) -> anyhow::Result<()> {
+    fn send_col(&mut self, index: u8, vals: &[u8]) -> io::Result<()> {
         let mut buffer: [u8; 64] = [0; 64];
         buffer[0] = index;
         buffer[1..vals.len() + 1].copy_from_slice(vals);
         self.write_command(Command::SendCol, &buffer[0..vals.len() + 1])
     }
 
-    fn commit_cols(&mut self) -> anyhow::Result<()> {
+    fn commit_cols(&mut self) -> io::Result<()> {
         self.write_command(Command::CommitCols, &[])
     }
 
     #[allow(dead_code)]
     pub fn display_gray_image_by_path(&mut self, image_path: &str) -> anyhow::Result<()> {
         let img = ImageReader::open(image_path)?.decode()?.to_luma8();
-        self.display_gray_image(img)
+        self.display_gray_image(img)?;
+        Ok(())
     }
 
-    pub fn display_gray_image(&mut self, img: GrayImage) -> anyhow::Result<()> {
+    pub fn display_gray_image(&mut self, img: GrayImage) -> io::Result<()> {
         let width = img.width();
         let height = img.height();
 
         if width != WIDTH as u32 || height != HEIGHT as u32 {
-            bail!("Image must be {WIDTH}x{HEIGHT} pixels; got {width}x{height}");
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                anyhow!("Image must be {WIDTH}x{HEIGHT} pixels; got {width}x{height}"),
+            ));
         }
 
         let mut brightnesses = [0; HEIGHT];
