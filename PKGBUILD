@@ -1,6 +1,6 @@
 # Maintainer: Igor Kalishevskii <lilo.panic@gmail.com>
 pkgname=led_matrix_daemon
-pkgver=0.2.1
+pkgver=0.2.2
 pkgrel=1
 pkgdesc="A daemon that renders images on a LED matrix connected to a Framework 16 Laptop"
 arch=('x86_64')
