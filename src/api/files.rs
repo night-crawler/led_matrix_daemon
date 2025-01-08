@@ -63,15 +63,13 @@ async fn queue_even_odd(
     images: Vec<GrayImage>,
     sender: &AsyncSender<RenderTask>,
 ) -> anyhow::Result<()> {
-    let mut iter = images.into_iter().array_chunks::<2>();
+    let mut iter = images.into_iter();
 
-    for [left, right] in iter.by_ref() {
+    while let (Some(left), Some(right)) = (iter.next(), iter.next()) {
         sender.send(RenderTask::Both(left, right)).await?;
     }
 
-    if let Some(mut rem) = iter.into_remainder()
-        && let Some(left) = rem.next()
-    {
+    if let Some(left) = iter.next() {
         sender.send(RenderTask::Left(left)).await?;
     }
 

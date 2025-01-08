@@ -28,13 +28,14 @@ impl RenderTask {
                 .map_err(|err| anyhow!("Poisoned mutex: {err:?}"))?;
 
             // We return ErrorKind::Other ourselves: stdlib does not use it, so we know that
-            // something wrong with the port has happened, and we'll try our luck and release 
+            // something wrong with the port has happened, and we'll try our luck and release
             // the handle, so we would not interfere with kernel device numbering
-            if let Err(err) = port.display_gray_image(image)
-                && err.kind() != ErrorKind::Other
-            {
-                error!(?err, ?port, "Shutting down the port");
-                port.close();
+            match port.display_gray_image(image) {
+                Err(err) if err.kind() != ErrorKind::Other => {
+                    error!(?err, ?port, "Shutting down the port");
+                    port.close();
+                }
+                _ => {}
             }
             Ok(())
         })

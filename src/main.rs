@@ -1,8 +1,3 @@
-#![feature(let_chains)]
-#![feature(if_let_guard)]
-#![feature(array_chunks)]
-#![feature(iter_array_chunks)]
-
 use std::sync::Arc;
 
 use actix_web::{web, App, HttpServer};
