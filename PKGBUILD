@@ -11,10 +11,16 @@ makedepends=('rust' 'clang')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/night-crawler/$pkgname/archive/$pkgver.tar.gz")
 sha512sums=('SKIP')
 
+prepare() {
+    rustup update
+}
+
 build() {
   cd "$pkgname-$pkgver"
-  export RUSTFLAGS="--cfg tokio_unstable --cfg=tokio_unstable"
+  export CFLAGS=$(echo "$CFLAGS" | sed 's/-flto=auto//g')
+  export RUSTFLAGS="--cfg tokio_unstable --cfg=tokio_unstable -C lto=off"
   export CC=clang
+  env
   cargo build --release --locked
 }
 
