@@ -20,7 +20,6 @@ build() {
   export CFLAGS=$(echo "$CFLAGS" | sed 's/-flto=auto//g')
   export RUSTFLAGS="--cfg tokio_unstable --cfg=tokio_unstable -C lto=off"
   export CC=clang
-  env
   cargo build --release --locked
 }
 
