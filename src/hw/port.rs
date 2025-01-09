@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::anyhow;
-use image::{io::Reader as ImageReader, GrayImage, Luma};
+use image::{GrayImage, ImageReader, Luma};
 use serialport::SerialPort;
 use tracing::warn;
 

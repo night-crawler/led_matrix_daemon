@@ -27,7 +27,7 @@ struct MultipleRenderRequest {
 
 impl SingleRenderRequest {
     fn buf_to_gray_image(buf: &[u8]) -> Result<GrayImage, ApiError> {
-        let image = image::io::Reader::new(Cursor::new(buf))
+        let image = image::ImageReader::new(Cursor::new(buf))
             .with_guessed_format()?
             .decode()?;
         Ok(image.into_luma8())
