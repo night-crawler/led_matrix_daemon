@@ -34,6 +34,34 @@ sudo systemctl enable --now led_matrix_daemon.socket led_matrix_daemon.service
 
 Configuration is located at `/etc/led_matrix/daemon.toml`.
 
+### NixOS
+
+Add the flake to your NixOS configuration:
+
+```nix
+{
+  inputs.led-matrix-daemon.url = "github:night-crawler/led_matrix_daemon";
+
+  outputs = { self, nixpkgs, led-matrix-daemon, ... }: {
+    nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
+      # ...
+      modules = [
+        led-matrix-daemon.nixosModules.default
+        {
+          services.led-matrix-daemon = {
+            enable = true;
+            # Optional: override the default configuration
+            # configFile = ./path/to/your/custom/daemon.toml;
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+This will install the daemon, set up the systemd service and socket, and use the default configuration. You can override the configuration by setting the `configFile` option.
+
 ### Build
 
 Install Rust:

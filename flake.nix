@@ -21,7 +21,61 @@
       advisory-db,
       ...
     }:
-    flake-utils.lib.eachDefaultSystem (
+    {
+      nixosModules.default = { config, lib, pkgs, ... }:
+        let
+          cfg = config.services.led-matrix-daemon;
+        in
+        {
+          options.services.led-matrix-daemon = {
+            enable = lib.mkEnableOption "LED Matrix Daemon";
+
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = self.packages.${pkgs.system}.default;
+              description = "The led_matrix_daemon package to use.";
+            };
+
+            configFile = lib.mkOption {
+              type = lib.types.path;
+              default = pkgs.writeText "daemon.toml" (builtins.readFile ./test_data/config.toml);
+              description = "Path to the configuration file.";
+            };
+          };
+
+          config = lib.mkIf cfg.enable {
+            systemd.services.led_matrix_daemon = {
+              description = "LED Matrix Service";
+              after = [ "network.target" ];
+              requires = [ "led_matrix_daemon.socket" ];
+
+              serviceConfig = {
+                Type = "simple";
+                ExecStart = "${cfg.package}/bin/led_matrix_daemon --config=${cfg.configFile}";
+                Restart = "on-failure";
+                User = "root";
+                Group = "root";
+              };
+
+              wantedBy = [ "multi-user.target" ];
+            };
+
+            systemd.sockets.led_matrix_daemon = {
+              description = "LED Matrix Daemon Socket";
+
+              socketConfig = {
+                ListenStream = "/var/run/led-matrix/led-matrix.sock";
+                FileDescriptorName = "uds";
+                SocketMode = "0666";
+              };
+
+              wantedBy = [ "sockets.target" ];
+            };
+
+            environment.systemPackages = [ cfg.package ];
+          };
+        };
+    } // flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
