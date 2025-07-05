@@ -1,5 +1,5 @@
 {
-  description = "Build led_matrix_daemon";
+  description = "Build led-matrix-daemon";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -33,7 +33,7 @@
             package = lib.mkOption {
               type = lib.types.package;
               default = self.packages.${pkgs.system}.default;
-              description = "The led_matrix_daemon package to use.";
+              description = "The led-matrix-daemon package to use.";
             };
 
             configFile = lib.mkOption {
@@ -44,10 +44,10 @@
           };
 
           config = lib.mkIf cfg.enable {
-            systemd.services.led_matrix_daemon = {
-              description = "LED Matrix Service";
+            systemd.services.led-matrix-daemon = {
+              description = "LED Matrix Daemon Service";
               after = [ "network.target" ];
-              requires = [ "led_matrix_daemon.socket" ];
+              requires = [ "led-matrix-daemon.socket" ];
 
               serviceConfig = {
                 Type = "simple";
@@ -60,7 +60,7 @@
               wantedBy = [ "multi-user.target" ];
             };
 
-            systemd.sockets.led_matrix_daemon = {
+            systemd.sockets.led-matrix-daemon = {
               description = "LED Matrix Daemon Socket";
 
               socketConfig = {
