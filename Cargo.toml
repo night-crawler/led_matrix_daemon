@@ -18,7 +18,6 @@ serde_json = "1"
 serde_with = { version = "3.8", features = ["base64"] }
 toml = "0.8"
 
-humantime = { version = "2" }
 humantime-serde = "1.1"
 
 tokio = { version = "1", features = ["full"] }

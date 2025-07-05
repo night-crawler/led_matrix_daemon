@@ -1682,7 +1682,6 @@ dependencies = [
  "clap",
  "console-subscriber",
  "futures-util",
- "humantime",
  "humantime-serde",
  "image",
  "kanal",
