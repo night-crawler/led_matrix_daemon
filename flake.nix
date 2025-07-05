@@ -61,12 +61,13 @@
             };
 
             systemd.sockets.led-matrix-daemon = {
-              description = "LED Matrix Daemon Socket";
+              description  = "LED Matrix Daemon Socket";
 
               socketConfig = {
-                ListenStream = "/var/run/led-matrix/led-matrix.sock";
+                ListenStream       = "%t/led-matrix/led-matrix.sock";
                 FileDescriptorName = "uds";
-                SocketMode = "0666";
+                SocketMode         = "0666";
+                DirectoryMode      = "0755";
               };
 
               wantedBy = [ "sockets.target" ];
