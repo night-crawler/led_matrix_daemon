@@ -6,3 +6,4 @@ led_matrix_daemon*.tar.gz
 led_matrix_daemon-*.pkg.tar.zst
 pkg/**
 .SRCINFO
+/result
