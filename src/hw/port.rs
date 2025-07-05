@@ -167,7 +167,7 @@ impl Port {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "integration"))]
 mod tests {
     use super::*;
 
