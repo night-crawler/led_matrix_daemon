@@ -24,4 +24,4 @@ PAYLOAD=$(jq -n --argjson render "$(printf '[%s]' "$(IFS=,; echo "${render_image
 
 echo "$PAYLOAD"
 
-curl --unix-socket /var/run/led-matrix/led-matrix.sock -X POST -H "Content-Type: application/json" -d "$PAYLOAD" http://localhost/render/base64/multiple
+curl --unix-socket /run/led-matrix/led-matrix.sock -X POST -H "Content-Type: application/json" -d "$PAYLOAD" http://localhost/render/base64/multiple

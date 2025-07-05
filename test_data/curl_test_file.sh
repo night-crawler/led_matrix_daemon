@@ -12,4 +12,4 @@ for i in {0..15}; do
 done
 
 # Execute the curl command with the form data
-curl --unix-socket /var/run/led-matrix/led-matrix.sock -X POST "${form_data[@]}" http://localhost/render/files
+curl --unix-socket /run/led-matrix/led-matrix.sock -X POST "${form_data[@]}" http://localhost/render/files

@@ -2,7 +2,7 @@
 Description=LED Matrix Daemon Socket
 
 [Socket]
-ListenStream=/var/run/led-matrix/led-matrix.sock
+ListenStream=/run/led-matrix/led-matrix.sock
 FileDescriptorName=uds
 SocketMode=0666
 
