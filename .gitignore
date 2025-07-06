@@ -7,3 +7,4 @@ led_matrix_daemon-*.pkg.tar.zst
 pkg/**
 .SRCINFO
 /result
+.direnv

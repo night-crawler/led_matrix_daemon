@@ -22,7 +22,13 @@
       ...
     }:
     {
-      nixosModules.default = { config, lib, pkgs, ... }:
+      nixosModules.default =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         let
           cfg = config.services.led-matrix-daemon;
         in
@@ -61,13 +67,13 @@
             };
 
             systemd.sockets.led-matrix-daemon = {
-              description  = "LED Matrix Daemon Socket";
+              description = "LED Matrix Daemon Socket";
 
               socketConfig = {
-                ListenStream       = "%t/led-matrix/led-matrix.sock";
+                ListenStream = "%t/led-matrix/led-matrix.sock";
                 FileDescriptorName = "uds";
-                SocketMode         = "0666";
-                DirectoryMode      = "0755";
+                SocketMode = "0666";
+                DirectoryMode = "0755";
               };
 
               wantedBy = [ "sockets.target" ];
@@ -76,7 +82,8 @@
             environment.systemPackages = [ cfg.package ];
           };
         };
-    } // flake-utils.lib.eachDefaultSystem (
+    }
+    // flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
